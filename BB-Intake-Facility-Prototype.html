@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intake form — Business Banking (BCLASS) · Prototype</title>
+<style>
+  /* Whitney (licensed). Drop the web-font files into a ./fonts/ folder beside this file
+     with these exact names, and the prototype renders in true Whitney everywhere. */
+  @font-face{font-family:"Whitney";src:url("fonts/Whitney-Book.woff2") format("woff2"),url("fonts/Whitney-Book.woff") format("woff");font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:"Whitney";src:url("fonts/Whitney-BookItalic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+  @font-face{font-family:"Whitney";src:url("fonts/Whitney-Medium.woff2") format("woff2"),url("fonts/Whitney-Medium.woff") format("woff");font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:"Whitney";src:url("fonts/Whitney-Semibold.woff2") format("woff2"),url("fonts/Whitney-Semibold.woff") format("woff");font-weight:600;font-style:normal;font-display:swap}
+  :root{
+    /* CIBC / True North primitives */
+    --red:#C41F3E; --red-dark:#A5122F; --headline:#8B1D41; --indigo:#34347A;
+    --ink:#383B3E; --muted:#606366; --faint:#86888A;               /* text-primary / secondary / dark-grey */
+    --line:#D9D9D6; --line-soft:#E8E8E6; --field-border:#BBBCBC;    /* border-default / light / mid */
+    --bg:#FAFAFA; --card:#FFFFFF; --field-bg:#FFFFFF;               /* bg-subtle / surface-white */
+    --amber-bg:#F6EFE6; --amber-line:#FFD364; --amber-tx:#994E04;   /* status warning */
+    --green-bg:#E7F2ED; --green-line:#76B297; --green-tx:#0A6D42;   /* status success */
+    --blue-bg:#DEE9F7; --blue-line:#9BBFE0; --blue-tx:#0767A8;      /* status info */
+    --err-bg:#FAF1F3; --err-line:#EFBBCC; --err-tx:#C41F3E;         /* status error */
+    --focus:#0767A8;
+    --radius:12px; --radius-sm:8px;
+    /* Whitney: Book=400, Medium=500, Semibold=600 */
+    --font:"Whitney","Whitney SSm A","Whitney SSm B",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .skip{position:absolute;left:12px;top:-48px;background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:8px;z-index:20;transition:top .15s}
+  .skip:focus{top:12px}
+  /* focus visibility everywhere */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+  /* top bar / stepper */
+  .topbar{position:sticky;top:0;z-index:8;background:#fff;border-bottom:1px solid var(--line)}
+  .topbar .inner{display:flex;align-items:center;gap:12px;padding:10px 22px}
+  .brand{width:22px;height:26px;border-radius:4px;background:var(--red);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+  .topbar .co{font-weight:600}
+  .stepper{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:6px;flex-wrap:wrap}
+  .stepper .st{display:flex;align-items:center;gap:6px}
+  .stepper .dot{width:16px;height:16px;border-radius:50%;background:#E7E9EC;color:var(--muted);font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  .stepper .st.done .dot{background:var(--green-tx);color:#fff}
+  .stepper .st.active .dot{background:var(--red);color:#fff}
+  .stepper .st.active b{color:var(--ink);font-weight:600}
+  .stepper .sep{width:14px;height:1px;background:var(--line)}
+  .save{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green-tx)}
+  .save .sd{width:7px;height:7px;border-radius:50%;background:var(--green-tx)}
+  .save.saving{color:var(--muted)} .save.saving .sd{background:var(--muted)}
+  /* layout */
+  main{max-width:1040px;margin:0 auto;padding:20px 22px 150px;display:grid;grid-template-columns:210px 1fr;gap:28px;align-items:start}
+  h1{grid-column:1/-1;font-size:24px;margin:8px 0 6px;font-weight:600;letter-spacing:-.01em}
+  /* section nav */
+  nav.sects{position:sticky;top:74px;font-size:14px}
+  nav.sects .secthead{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px;padding-left:12px}
+  nav.sects .lbl{font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  .navtoggle{background:none;border:none;color:var(--muted);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+  .navtoggle:hover{background:#fff}
+  .navtoggle .chev{display:inline-block;font-size:18px;transition:transform .15s}
+  main.navcollapsed{grid-template-columns:52px 1fr}
+  main.navcollapsed nav.sects .lbl{display:none}
+  main.navcollapsed nav.sects .secthead{justify-content:center;padding-left:0}
+  main.navcollapsed nav.sects a{justify-content:center;padding:8px;position:relative}
+  main.navcollapsed nav.sects .nl{display:none}
+  main.navcollapsed nav.sects a[aria-current=true]{box-shadow:none}
+  main.navcollapsed .navtoggle .chev{transform:rotate(180deg)}
+  main.navcollapsed nav.sects a:hover::after,main.navcollapsed nav.sects a:focus-visible::after{
+    content:attr(data-label);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+    background:var(--ink);color:#fff;padding:5px 9px;border-radius:6px;white-space:nowrap;font-size:12px;z-index:12;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+  nav.sects ol{list-style:none;margin:0;padding:0}
+  nav.sects a{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;color:var(--muted);text-decoration:none}
+  nav.sects a[aria-current="true"]{background:#fff;color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
+  nav.sects a .ck{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:transparent;flex:none}
+  nav.sects a.complete .ck{background:var(--green-tx);border-color:var(--green-tx);color:#fff}
+  nav.sects a.locked{opacity:.45;pointer-events:none}
+  .forms{min-width:0}
+  /* section card */
+  section.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin:0 0 18px;scroll-margin-top:80px}
+  section.card > h2{font-size:16px;margin:0 0 4px;font-weight:600}
+  section.card > .shint{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .locked-note{color:var(--faint);font-size:13px;font-style:italic}
+  /* fields */
+  .field{margin:0 0 16px}
+  .field:last-child{margin-bottom:0}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row > .field{flex:1;min-width:190px;margin-bottom:16px}
+  label.fl,legend.fl{display:block;font-weight:600;font-size:14px;line-height:20px;margin:0 0 4px;color:var(--ink);padding:0}
+  .req{color:var(--red);margin-left:1px}
+  .opt{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+  .help{font-size:12px;line-height:16px;color:var(--muted);margin:4px 0 0}
+  input[type=text],input[type=number],select,textarea{
+    width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:var(--field-bg);
+    border:1px solid var(--field-border);border-radius:var(--radius-sm);padding:9px 11px;outline:none}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(196,31,62,.15)}
+  input[aria-invalid=true],select[aria-invalid=true],textarea[aria-invalid=true]{border-color:var(--red)}
+  textarea{min-height:74px;resize:vertical}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23606366' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+  .affix{position:relative}
+  .affix .pre{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+  .affix .suf{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+  .affix.hasPre input{padding-left:22px}
+  .affix.hasSuf input{padding-right:28px}
+  /* buttons */
+  .btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:var(--radius-sm);padding:9px 16px;cursor:pointer;border:1px solid transparent}
+  .btn.primary{background:var(--red);color:#fff}
+  .btn.primary:hover{background:var(--red-dark)}
+  .btn.primary:disabled{background:#E8E8E6;color:#86888A;cursor:not-allowed}
+  .btn.ghost{background:#fff;border-color:var(--field-border);color:var(--ink)}
+  .btn.ghost:hover{background:#FAFBFC}
+  .btn.link{background:none;border:none;color:var(--red);font-weight:600;cursor:pointer;padding:6px 4px}
+  .btn.sm{padding:7px 13px;font-size:13px}
+  .adddash{width:100%;border:1px dashed var(--field-border);background:#FCFCFD;color:var(--red);font-weight:600;border-radius:var(--radius-sm);padding:12px;cursor:pointer;font-size:14px;margin-top:12px}
+  .adddash:hover{background:#F7F8FA}
+  /* chip list */
+  .chiprow{display:flex;gap:10px;align-items:flex-start}
+  .chiprow input{max-width:220px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--blue-bg);color:var(--blue-tx);border:1px solid var(--blue-line);border-radius:20px;padding:3px 6px 3px 11px;font-size:13px}
+  .chip button{background:none;border:none;color:var(--blue-tx);cursor:pointer;font-size:14px;line-height:1;padding:2px;border-radius:50%}
+  .chip button:hover{background:rgba(29,79,134,.14)}
+  /* entity card */
+  .ecard{border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;margin-top:12px;background:#FCFCFD}
+  .ecard .etop{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .ecard .etop .en{font-weight:600;font-size:12px;color:var(--muted);letter-spacing:.03em}
+  .ecard .rm{margin-left:auto}
+  .checks{display:flex;flex-direction:column;gap:8px}
+  .chk{display:flex;gap:9px;align-items:flex-start;font-size:13px;cursor:pointer}
+  .chk input{margin-top:2px}
+  .chk .ct{display:block}
+  .chk .ct{display:block;font-weight:500}
+  .chk .ch{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+  /* facility card */
+  .fcard{border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;overflow:hidden;background:#fff}
+  .fhead{background:var(--ink);color:#fff;padding:11px 16px;display:flex;align-items:center;gap:10px}
+  .fhead .ft{font-weight:600;font-size:14px}
+  .fhead .rm{margin-left:auto;background:rgba(255,255,255,.16);border:none;color:#fff;font-weight:600;font-size:12px;padding:5px 11px;border-radius:6px;cursor:pointer}
+  .fhead .rm:hover{background:rgba(255,255,255,.3)}
+  .fbody{padding:18px}
+  fieldset{border:none;margin:0 0 14px;padding:0}
+  .seg{display:inline-flex;border:1px solid var(--field-border);border-radius:8px;overflow:hidden;margin-top:4px}
+  .seg label{position:relative;font-size:13px;font-weight:600;padding:7px 16px;color:var(--muted);cursor:pointer;border-left:1px solid var(--field-border)}
+  .seg label:first-child{border-left:none}
+  .seg input{position:absolute;opacity:0;width:1px;height:1px}
+  .seg input:checked + span,.seg label:has(input:checked){}
+  .seg label.on{background:var(--red);color:#fff}
+  .seg input:focus-visible ~ span{outline:2px solid var(--focus)}
+  .changehint{font-size:12px;color:var(--amber-tx);background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:6px;padding:2px 8px;margin-left:10px;display:inline-block}
+  .empty{color:var(--faint);font-size:13px;font-style:italic;padding:12px 2px}
+  /* footer + validation */
+  .foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:9}
+  .foot .inner{max-width:1040px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:12px}
+  .foot .auto{font-size:12px;color:var(--muted)} .foot .spacer{flex:1}
+  .btn.primary[aria-disabled=true]{background:#E8E8E6;color:#86888A;cursor:not-allowed}
+  .proceedwrap{position:relative;display:inline-block}
+  .ttip{position:absolute;bottom:calc(100% + 12px);right:0;width:330px;max-height:250px;overflow:auto;
+    background:#383B3E;color:#fff;border-radius:9px;padding:12px 14px;font-size:13px;line-height:1.42;
+    box-shadow:0 10px 28px rgba(0,0,0,.24);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .12s,transform .12s}
+  .ttip.open{opacity:1;transform:translateY(0);pointer-events:auto}
+  .ttip:after{content:"";position:absolute;top:100%;right:26px;border:7px solid transparent;border-top-color:#383B3E}
+  .ttip b{font-weight:700;display:block;margin-bottom:6px}
+  .ttip ul{margin:0;padding-left:16px} .ttip li{margin:2px 0}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;color:#fff;background:#34347A;padding:2px 7px;border-radius:4px;vertical-align:middle;margin-left:8px}
+  .disclaim{grid-column:1/-1;color:var(--faint);font-size:12px;margin:4px 2px 0}
+  @media(max-width:760px){ main{grid-template-columns:1fr} nav.sects{position:static;margin-bottom:6px} }
+</style>
+</head>
+<body>
+<a href="#formMain" class="skip">Skip to form</a>
+<header class="topbar">
+  <div class="inner">
+    <span class="brand" aria-hidden="true">CN</span>
+    <span class="co">ABC Holdings Ltd.</span>
+    <nav class="stepper" aria-label="Progress">
+      <span class="st done"><span class="dot" aria-hidden="true">✓</span> Session Setup</span><span class="sep"></span>
+      <span class="st active" aria-current="step"><span class="dot" aria-hidden="true">2</span> <b>Intake Form</b></span><span class="sep"></span>
+      <span class="st"><span class="dot" aria-hidden="true">3</span> Files</span><span class="sep"></span>
+      <span class="st"><span class="dot" aria-hidden="true">4</span> DSC Review</span><span class="sep"></span>
+      <span class="st"><span class="dot" aria-hidden="true">5</span> Generate</span>
+    </nav>
+    <span class="save" id="saveInd" role="status" aria-live="polite"><span class="sd" aria-hidden="true"></span> Draft saved</span>
+  </div>
+</header>
+
+<main>
+  <h1>Intake form <span class="tag">PROTOTYPE</span></h1>
+
+  <nav class="sects" aria-label="Form sections">
+    <div class="secthead">
+      <span class="lbl">SECTIONS</span>
+      <button type="button" class="navtoggle" aria-expanded="true" aria-controls="secNav" aria-label="Collapse sections" onclick="toggleNav()"><span class="chev" aria-hidden="true">‹</span></button>
+    </div>
+    <ol id="secNav">
+      <li><a href="#sec-scenario" class="complete" data-sec="scenario" data-label="Scenario &amp; rates" aria-label="Scenario and rates"><span class="ck" aria-hidden="true">✓</span><span class="nl">Scenario &amp; rates</span></a></li>
+      <li><a href="#sec-corp" class="locked" data-sec="corp" data-label="Corporate borrowers / guarantors" aria-label="Corporate borrowers and guarantors"><span class="ck" aria-hidden="true">✓</span><span class="nl">Corporate borrowers / guarantors</span></a></li>
+      <li><a href="#sec-personal" class="locked" data-sec="personal" data-label="Personal guarantors" aria-label="Personal guarantors"><span class="ck" aria-hidden="true">✓</span><span class="nl">Personal guarantors</span></a></li>
+      <li><a href="#sec-fac" class="locked" data-sec="fac" data-label="Facilities" aria-label="Facilities"><span class="ck" aria-hidden="true">✓</span><span class="nl">Facilities</span></a></li>
+      <li><a href="#sec-addl" class="locked" data-sec="addl" data-label="Additional information" aria-label="Additional information"><span class="ck" aria-hidden="true">✓</span><span class="nl">Additional information</span></a></li>
+    </ol>
+  </nav>
+
+  <div class="forms" id="formMain">
+
+    <!-- SCENARIO & RATES -->
+    <section class="card" id="sec-scenario" aria-labelledby="h-scenario">
+      <h2 id="h-scenario">Scenario &amp; rates</h2>
+      <p class="shint">Start by choosing the analysis type — the rest of the form adapts to it.</p>
+      <div class="field">
+        <label class="fl" for="scenario">What type of DSC analysis are you conducting?<span class="req" aria-hidden="true">*</span></label>
+        <select id="scenario" aria-required="true" aria-describedby="scenario-help" onchange="onScenario()">
+          <option value="">Select scenario…</option>
+          <option value="business">Business only</option>
+          <option value="business_personal">Business plus personal</option>
+          <option value="investment_property">Investment property</option>
+        </select>
+        <p class="help" id="scenario-help">Use Investment property only when property financial statements aren’t available.</p>
+      </div>
+
+      <div id="afterScenario" hidden>
+        <div class="field">
+          <label class="fl" for="bclassIn">BCLASS number(s)<span class="req" aria-hidden="true">*</span></label>
+          <div class="chiprow">
+            <input type="text" id="bclassIn" aria-describedby="bclass-help" placeholder="e.g. 123456" onkeydown="if(event.key==='Enter'){event.preventDefault();addChip('bclass')}">
+            <button type="button" class="btn ghost sm" onclick="addChip('bclass')">Add</button>
+          </div>
+          <p class="help" id="bclass-help">Add at least one. Press Enter or Add for each number.</p>
+          <div class="chips" id="bclassChips" role="list" aria-label="BCLASS numbers"></div>
+        </div>
+        <div class="field" style="max-width:220px">
+          <label class="fl" for="prime">CIBC Prime Rate<span class="req" aria-hidden="true">*</span></label>
+          <div class="affix hasSuf"><input type="text" inputmode="decimal" id="prime" aria-required="true" placeholder="6.95" oninput="validate()"><span class="suf" aria-hidden="true">%</span></div>
+        </div>
+        <div class="field" id="propWrap" hidden>
+          <label class="fl" for="propIn">Property address for DSC<span class="req" aria-hidden="true">*</span></label>
+          <div class="chiprow">
+            <input type="text" id="propIn" aria-describedby="prop-help" placeholder="Street, city" onkeydown="if(event.key==='Enter'){event.preventDefault();addChip('prop')}">
+            <button type="button" class="btn ghost sm" onclick="addChip('prop')">Add</button>
+          </div>
+          <p class="help" id="prop-help">Required for the investment-property scenario. Add each property.</p>
+          <div class="chips" id="propChips" role="list" aria-label="Property addresses"></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="gated" hidden>
+    <!-- CORPORATE BORROWERS / GUARANTORS -->
+    <section class="card" id="sec-corp" aria-labelledby="h-corp">
+      <h2 id="h-corp">Corporate borrowers / guarantors</h2>
+      <p class="shint">Add each corporate entity. Anyone who holds or will hold a facility is captured here so it can be selected on a facility below.</p>
+      <div id="corpList"></div>
+      <div class="empty" id="corpEmpty">No corporate parties added yet.</div>
+      <button type="button" class="adddash" onclick="addEntity('corp')">+ Add corporate borrower / guarantor</button>
+    </section>
+
+    <!-- PERSONAL GUARANTORS -->
+    <section class="card" id="sec-personal" aria-labelledby="h-personal">
+      <h2 id="h-personal">Personal guarantors</h2>
+      <p class="shint">Add any individual guarantors on this application.</p>
+      <div id="personalList"></div>
+      <div class="empty" id="personalEmpty">No personal guarantors added yet.</div>
+      <button type="button" class="adddash" onclick="addEntity('personal')">+ Add personal guarantor</button>
+    </section>
+
+    <!-- FACILITIES -->
+    <section class="card" id="sec-fac" aria-labelledby="h-fac">
+      <h2 id="h-fac">Facilities</h2>
+      <p class="shint">Choose a facility type and add it. Fields adapt to the type and its status. At least one facility is required to continue.</p>
+      <div class="row" style="align-items:flex-end">
+        <div class="field" style="margin-bottom:0"><label class="fl" for="facType">Facility type</label>
+          <select id="facType"><option value="">Select facility type…</option></select>
+        </div>
+        <div class="field" style="flex:none;margin-bottom:0"><button type="button" class="btn primary" onclick="addFacility()">Add facility</button></div>
+      </div>
+      <div class="empty" id="facEmpty" style="margin-top:12px">No facilities added yet.</div>
+      <div id="facCards"></div>
+    </section>
+
+    <!-- ADDITIONAL INFORMATION -->
+    <section class="card" id="sec-addl" aria-labelledby="h-addl">
+      <h2 id="h-addl">Additional information</h2>
+      <div class="field">
+        <label class="fl" for="aiDesc">Description of business<span class="req" aria-hidden="true">*</span></label>
+        <textarea id="aiDesc" aria-required="true" aria-describedby="aiDesc-help" oninput="validate()"></textarea>
+        <p class="help" id="aiDesc-help">Describe each borrower and guarantor involved including ownership, history, products and services, or any other details not provided as attachments later.</p>
+      </div>
+      <div class="field">
+        <label class="fl" for="aiEval">Business evaluation<span class="req" aria-hidden="true">*</span></label>
+        <textarea id="aiEval" aria-required="true" aria-describedby="aiEval-help" oninput="validate()"></textarea>
+        <p class="help" id="aiEval-help">Provide financial evaluation details for each borrower and guarantor including reasons for material changes, client financial commentary, or other details not evident from analysis alone.</p>
+      </div>
+      <div class="field">
+        <label class="fl" for="aiExc">Exceptions<span class="opt">(optional)</span></label>
+        <textarea id="aiExc" aria-describedby="aiExc-help"></textarea>
+        <p class="help" id="aiExc-help">Include security differences / non-standard security and other exceptions, with rationale. Examples should come from the lending guidelines. Unless stated otherwise, security is assumed based on credit standards.</p>
+      </div>
+      <div class="field">
+        <label class="fl" for="aiCond">Conditions precedent<span class="opt">(optional)</span></label>
+        <textarea id="aiCond"></textarea>
+      </div>
+      <div class="field">
+        <label class="fl" for="aiRoutine">Routine conditions / Lender’s due diligence<span class="opt">(optional)</span></label>
+        <textarea id="aiRoutine"></textarea>
+      </div>
+    </section>
+    </div><!-- /gated -->
+    <p class="disclaim">This AI-generated report is a draft and may contain errors or omissions. Please review and verify all details before use. You are fully responsible for its accuracy.</p>
+  </div>
+</main>
+
+<div class="foot">
+  <div class="inner">
+    <span class="auto">Changes are saved automatically.</span>
+    <span class="spacer"></span>
+    <button type="button" class="btn ghost">Back</button>
+    <button type="button" class="btn ghost">Save &amp; close</button>
+    <span class="proceedwrap">
+      <div id="tip" class="ttip" role="tooltip"></div>
+      <button type="button" class="btn primary" id="proceed" aria-disabled="true" onclick="tryProceed()">Continue to Files</button>
+    </span>
+  </div>
+  <span class="visually-hidden" id="liveMsg" role="status" aria-live="assertive"></span>
+</div>
+
+<script>
+/* ---------- config ---------- */
+const TYPES=[["Operating Line","operating"],["Small Business Overdraft (SBO)","operating"],["Term Loan","term"],["CSBFL Term Loan","term"],["Partner Capital Loan (Packaged)","term"],["Partner Capital Loan (Non-Packaged)","term"],["Business Plus Visa Card","simple"],["Letter of Credit","simple"],["PPSL","simple"],["Foreign Exchange Contract (FEC)","simple"]];
+const PAY=["Principal only","Principal plus interest","Interest only","Blended"];
+const SPEC={
+  operating:{New:["Borrower|borrower","Limit|cur","Interest Rate Spread|pct"],Existing:["Borrower|borrower","Limit|cur","Balance|cur","Interest Rate Spread|pct"],Change:["Borrower|borrower","Prior Limit|cur","New Limit|cur","Prior Balance|cur","New Balance|cur","Interest Rate Spread|pct"]},
+  term:{New:["Borrower|borrower","Amount|cur","Amortization (months)|num","Interest Rate Spread|pct"],Existing:["Borrower|borrower","Balance|cur","Payment Type|pay","Monthly Payment|cur","All-in Interest Rate|pct"],Change:["Borrower|borrower","Balance|cur","Amount|cur","Amortization (months)|num","Interest Rate Spread|pct"]},
+  simple:{New:["Borrower|borrower","Amount|cur"],Existing:["Borrower|borrower","Amount|cur"],Change:["Borrower|borrower","Existing Amount|cur","New Amount|cur"]}
+};
+/* ---------- state ---------- */
+let bclass=[], props=[], corp=[], personal=[], facilities=[], nextId=1, lastMissingCount=0;
+const facSel=document.getElementById('facType');
+TYPES.forEach(([n])=>{const o=document.createElement('option');o.value=n;o.textContent=n;facSel.appendChild(o);});
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function allNames(){return corp.map(e=>e.name).concat(personal.map(e=>e.name)).filter(Boolean);}
+
+/* ---------- scenario gate ---------- */
+function onScenario(){
+  const v=document.getElementById('scenario').value;
+  document.getElementById('afterScenario').hidden=!v;
+  document.getElementById('gated').hidden=!v;
+  document.getElementById('propWrap').hidden=(v!=='investment_property');
+  document.querySelectorAll('#secNav a.locked').forEach(a=>{ if(v) a.classList.remove('locked'); });
+  if(!v){ document.querySelectorAll('#secNav a[data-sec]:not([data-sec=scenario])').forEach(a=>a.classList.add('locked')); }
+  validate();
+}
+
+/* ---------- chips ---------- */
+function addChip(kind){
+  const inId=kind==='bclass'?'bclassIn':'propIn'; const arr=kind==='bclass'?bclass:props;
+  const el=document.getElementById(inId); const val=el.value.trim(); if(!val) return;
+  arr.push(val); el.value=''; el.focus(); renderChips(kind); validate();
+}
+function rmChip(kind,i){ (kind==='bclass'?bclass:props).splice(i,1); renderChips(kind); validate(); }
+function renderChips(kind){
+  const arr=kind==='bclass'?bclass:props; const box=document.getElementById(kind==='bclass'?'bclassChips':'propChips');
+  box.innerHTML=arr.map((v,i)=>`<span class="chip" role="listitem">${esc(v)}<button type="button" aria-label="Remove ${esc(v)}" onclick="rmChip('${kind}',${i})">×</button></span>`).join('');
+}
+
+/* ---------- entities ---------- */
+function addEntity(kind){ (kind==='corp'?corp:personal).push({name:'',type:kind==='corp'?'':'Guarantor',since:'',exclude:false,present:kind==='corp'}); renderEntities(kind); validate(); }
+function rmEntity(kind,i){ (kind==='corp'?corp:personal).splice(i,1); renderEntities(kind); renderFacilities(); validate(); }
+function setEnt(kind,i,f,v){ (kind==='corp'?corp:personal)[i][f]=v; if(f==='name'){renderFacilities();} validate(); }
+function renderEntities(kind){
+  const arr=kind==='corp'?corp:personal; const list=document.getElementById(kind==='corp'?'corpList':'personalList');
+  document.getElementById(kind==='corp'?'corpEmpty':'personalEmpty').style.display=arr.length?'none':'block';
+  list.innerHTML=arr.map((e,i)=>{
+    const nid=`${kind}-name-${i}`;
+    const typeCtl = kind==='corp'
+      ? `<div class="field" style="flex:none;width:160px;margin:0"><label class="fl" for="${kind}-type-${i}">Type<span class="req" aria-hidden="true">*</span></label>
+          <select id="${kind}-type-${i}" aria-required="true" onchange="setEnt('${kind}',${i},'type',this.value)">
+            <option value="" ${!e.type?'selected':''}>Select type…</option>
+            <option ${e.type==='Borrower'?'selected':''}>Borrower</option><option ${e.type==='Guarantor'?'selected':''}>Guarantor</option></select></div>` : '';
+    const presentChk = kind==='corp'
+      ? `<label class="chk"><input type="checkbox" ${e.present?'checked':''} onchange="setEnt('${kind}',${i},'present',this.checked)" aria-describedby="${kind}-pres-${i}"><span class="ct">Present Financial Analysis in Narrative<span class="ch" id="${kind}-pres-${i}">Presents the spread of financials in the narrative.</span></span></label>` : '';
+    return `<div class="ecard">
+      <div class="etop"><span class="en">${kind==='corp'?'CORPORATE PARTY':'PERSONAL GUARANTOR'} ${i+1}</span>
+        <button type="button" class="btn link sm rm" onclick="rmEntity('${kind}',${i})">Remove</button></div>
+      <div class="row">
+        <div class="field" style="margin:0"><label class="fl" for="${nid}">${kind==='corp'?'Legal / entity name':'Full name'}<span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="${nid}" value="${esc(e.name)}" oninput="setEnt('${kind}',${i},'name',this.value)"></div>
+        ${typeCtl}
+        <div class="field" style="flex:none;width:170px;margin:0"><label class="fl" for="${kind}-since-${i}">CIBC client since<span class="opt">(optional)</span></label>
+          <input type="text" id="${kind}-since-${i}" value="${esc(e.since)}" oninput="setEnt('${kind}',${i},'since',this.value)" placeholder="e.g. 2016"></div>
+      </div>
+      <div class="checks" style="margin-top:12px">
+        <label class="chk"><input type="checkbox" ${e.exclude?'checked':''} onchange="setEnt('${kind}',${i},'exclude',this.checked)" aria-describedby="${kind}-exc-${i}"><span class="ct">Exclude from DSC Calculator<span class="ch" id="${kind}-exc-${i}">Leaves this entity out of the debt-service calculation.</span></span></label>
+        ${presentChk}
+      </div></div>`;
+  }).join('');
+}
+
+/* ---------- facilities ---------- */
+function addFacility(){ const t=facSel.value; if(!t){facSel.focus();return;} const g=TYPES.find(x=>x[0]===t)[1]; facilities.push({id:nextId++,typeName:t,group:g,status:'New',values:{},purpose:''}); facSel.value=''; renderFacilities(); validate(); document.getElementById('f'+(nextId-1))?.scrollIntoView({behavior:'smooth',block:'center'}); }
+function rmFacility(id){ facilities=facilities.filter(f=>f.id!==id); renderFacilities(); validate(); }
+function setStatus(id,st){ const f=facilities.find(x=>x.id===id); if(f){f.status=st; renderFacilities(); validate();} }
+function setFVal(id,l,v){ const f=facilities.find(x=>x.id===id); if(f){f.values[l]=v; validate();} }
+function setFPurpose(id,v){ const f=facilities.find(x=>x.id===id); if(f){f.purpose=v; validate();} }
+function renderFacilities(){
+  document.getElementById('facEmpty').style.display=facilities.length?'none':'block';
+  document.getElementById('facCards').innerHTML=facilities.map(fCard).join('');
+}
+function fCard(f){
+  const spec=SPEC[f.group][f.status];
+  const fields=spec.map(s=>{const [l,k]=s.split('|');return `<div class="field" style="margin-bottom:14px"><label class="fl" for="fld-${f.id}-${cssId(l)}">${l}<span class="req" aria-hidden="true">*</span></label>${fControl(f,l,k)}</div>`;}).join('');
+  return `<div class="fcard" id="f${f.id}">
+    <div class="fhead"><span class="ft">${esc(f.typeName)}</span><button type="button" class="rm" onclick="rmFacility(${f.id})" aria-label="Remove ${esc(f.typeName)} facility">Remove</button></div>
+    <div class="fbody">
+      <fieldset><legend class="fl">Status</legend>
+        <div class="seg" role="radiogroup" aria-label="Facility status">
+          ${['New','Existing','Change'].map(st=>`<label class="${f.status===st?'on':''}"><input type="radio" name="st-${f.id}" ${f.status===st?'checked':''} onchange="setStatus(${f.id},'${st}')">${st}</label>`).join('')}
+        </div>
+      </fieldset>
+      <div class="row">${fields}</div>
+      <div class="field" style="margin-top:2px;margin-bottom:0"><label class="fl" for="fld-${f.id}-desc">Facility description<span class="req" aria-hidden="true">*</span></label>
+        <textarea id="fld-${f.id}-desc" aria-describedby="fld-${f.id}-desc-h" oninput="setFPurpose(${f.id},this.value)">${esc(f.purpose)}</textarea>
+        <p class="help" id="fld-${f.id}-desc-h">Briefly describe the facility, use of funds, impact to the business, and other pertinent details specific to this facility.</p></div>
+    </div></div>`;
+}
+function cssId(s){return s.replace(/[^a-z0-9]/gi,'').toLowerCase();}
+function fControl(f,label,kind){
+  const id=`fld-${f.id}-${cssId(label)}`; const v=f.values[label]!=null?f.values[label]:'';
+  if(kind==='borrower'){ const names=allNames();
+    if(!names.length) return `<select id="${id}" disabled><option>Add a borrower above first</option></select>`;
+    return `<select id="${id}" onchange="setFVal(${f.id},'${label}',this.value)"><option value="">Select borrower…</option>${names.map(n=>`<option ${v===n?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+  }
+  if(kind==='pay') return `<select id="${id}" onchange="setFVal(${f.id},'${label}',this.value)"><option value="">Select…</option>${PAY.map(p=>`<option ${v===p?'selected':''}>${p}</option>`).join('')}</select>`;
+  if(kind==='cur') return `<div class="affix hasPre"><span class="pre" aria-hidden="true">$</span><input id="${id}" type="text" inputmode="decimal" value="${esc(v)}" oninput="setFVal(${f.id},'${label}',this.value)" placeholder="0.00"></div>`;
+  if(kind==='pct') return `<div class="affix hasSuf"><input id="${id}" type="text" inputmode="decimal" value="${esc(v)}" oninput="setFVal(${f.id},'${label}',this.value)" placeholder="0.00"><span class="suf" aria-hidden="true">%</span></div>`;
+  if(kind==='num') return `<input id="${id}" type="number" min="0" value="${esc(v)}" oninput="setFVal(${f.id},'${label}',this.value)" placeholder="e.g. 60">`;
+  return `<input id="${id}" type="text" value="${esc(v)}" oninput="setFVal(${f.id},'${label}',this.value)">`;
+}
+
+/* ---------- validation + section completion ---------- */
+function validate(){
+  const v=document.getElementById('scenario').value;
+  const missing=[];
+  const secDone={scenario:false,corp:true,personal:true,fac:false,addl:false};
+  if(!v){ missing.push('Choose a DSC analysis type'); }
+  else{
+    if(!bclass.length) missing.push('Add at least one BCLASS number');
+    if(!document.getElementById('prime').value.trim()) missing.push('Enter the CIBC Prime Rate');
+    if(v==='investment_property' && !props.length) missing.push('Add at least one property address');
+    secDone.scenario = bclass.length && document.getElementById('prime').value.trim() && (v!=='investment_property'||props.length);
+    // facilities
+    if(!facilities.length){ missing.push('Add at least one credit facility'); }
+    facilities.forEach(f=>{ const gaps=[]; SPEC[f.group][f.status].forEach(s=>{const [l]=s.split('|'); if(!String(f.values[l]||'').trim()) gaps.push(l);}); if(!String(f.purpose||'').trim()) gaps.push('Facility description'); if(gaps.length) missing.push(`${f.typeName} (${f.status}): ${gaps.join(', ')}`); });
+    secDone.fac = facilities.length && !facilities.some(f=>SPEC[f.group][f.status].some(s=>!String(f.values[s.split('|')[0]]||'').trim())||!String(f.purpose||'').trim());
+    if(!document.getElementById('aiDesc').value.trim()) missing.push('Description of business');
+    if(!document.getElementById('aiEval').value.trim()) missing.push('Business evaluation');
+    secDone.addl = document.getElementById('aiDesc').value.trim() && document.getElementById('aiEval').value.trim();
+    // entity names filled (if any added)
+    if(corp.some(e=>!e.name.trim())) missing.push('Name every corporate party');
+    if(corp.some(e=>!e.type)) missing.push('Choose a type for every corporate party');
+    if(personal.some(e=>!e.name.trim())) missing.push('Name every personal guarantor');
+    // optional sections: tick only once entities are added AND all fields done; empty = neutral (no check)
+    secDone.corp = corp.length>0 && !corp.some(e=>!e.name.trim()||!e.type);
+    secDone.personal = personal.length>0 && !personal.some(e=>!e.name.trim());
+  }
+  // nav completion marks
+  document.querySelectorAll('#secNav a[data-sec]').forEach(a=>{ const s=a.dataset.sec; a.classList.toggle('complete', v && secDone[s]); if(s==='scenario') a.classList.toggle('complete', !!secDone.scenario); });
+  // footer button + accessible tooltip
+  const btn=document.getElementById('proceed'), tip=document.getElementById('tip');
+  if(missing.length){
+    btn.setAttribute('aria-disabled','true'); btn.setAttribute('aria-describedby','tip');
+    tip.innerHTML='<b>'+missing.length+' item'+(missing.length>1?'s':'')+' left before you can continue</b><ul>'+missing.map(m=>'<li>'+esc(m)+'</li>').join('')+'</ul>';
+    lastMissingCount=missing.length;
+  }else{
+    btn.setAttribute('aria-disabled','false'); btn.removeAttribute('aria-describedby');
+    tip.innerHTML=''; tip.classList.remove('open'); lastMissingCount=0;
+  }
+  triggerSave();
+}
+/* collapsible section nav (split-screen: reclaim width, keep progress dots) */
+function toggleNav(){
+  const m=document.querySelector('main'); const collapsed=m.classList.toggle('navcollapsed');
+  const b=document.querySelector('.navtoggle');
+  b.setAttribute('aria-expanded', String(!collapsed));
+  b.setAttribute('aria-label', collapsed?'Expand sections':'Collapse sections');
+}
+function tryProceed(){
+  const btn=document.getElementById('proceed');
+  if(btn.getAttribute('aria-disabled')==='true'){
+    document.getElementById('tip').classList.add('open');
+    document.getElementById('liveMsg').textContent='Can’t continue yet — '+lastMissingCount+' required item'+(lastMissingCount>1?'s':'')+' remaining. See the list above the button.';
+    return;
+  }
+  alert('Prototype: would continue to Files.');
+}
+/* accessible tooltip: show on hover AND focus, hoverable, Esc-dismissable (WCAG 1.4.13) */
+(function(){
+  const btn=document.getElementById('proceed'), tip=document.getElementById('tip'); let t;
+  function open(){ if(btn.getAttribute('aria-disabled')==='true'){ clearTimeout(t); tip.classList.add('open'); } }
+  function close(){ t=setTimeout(()=>tip.classList.remove('open'),140); }
+  btn.addEventListener('mouseenter',open); btn.addEventListener('focus',open);
+  btn.addEventListener('mouseleave',close); btn.addEventListener('blur',close);
+  tip.addEventListener('mouseenter',()=>clearTimeout(t)); tip.addEventListener('mouseleave',close);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') tip.classList.remove('open'); });
+})();
+
+/* ---------- section nav active on scroll ---------- */
+const secObserver=new IntersectionObserver((es)=>{es.forEach(e=>{ if(e.isIntersecting){ const id=e.target.id; document.querySelectorAll('#secNav a').forEach(a=>a.setAttribute('aria-current', a.getAttribute('href')==='#'+id ? 'true':'false')); } });},{rootMargin:'-40% 0px -55% 0px'});
+document.querySelectorAll('section.card').forEach(s=>secObserver.observe(s));
+
+/* ---------- simulated autosave ---------- */
+let saveT; function triggerSave(){ const ind=document.getElementById('saveInd'); clearTimeout(saveT); ind.className='save saving'; ind.innerHTML='<span class="sd" aria-hidden="true"></span> Saving…'; saveT=setTimeout(()=>{ ind.className='save'; ind.innerHTML='<span class="sd" aria-hidden="true"></span> Draft saved'; },600); }
+
+/* init */
+validate();
+</script>
+</body>
+</html>
